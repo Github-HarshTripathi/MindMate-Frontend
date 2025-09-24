@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========== GLOBAL STYLES ========== */
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #fff;
+  font-family: 'Inter', 'Space Grotesk', sans-serif;
+  overflow-x: hidden;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sections के बीच proper spacing के लिए */
+section {
+  min-height: 100vh;
+  padding: 2rem 0;
+}
+
+/* Navbar height compensate करने के लिए */
+section:first-of-type {
+  padding-top: 80px; /* Navbar की height के according */
+}
+
+/* ========== RESPONSIVE FIXES ========== */
+.container-responsive {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    max-width: 1024px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-responsive {
+    max-width: 1280px;
+  }
+}
+
+/* Mobile पर spacing adjust करें */
+@media (max-width: 768px) {
+  section {
+    min-height: auto;
+    padding: 1rem 0;
+  }
+  
+  section:first-of-type {
+    padding-top: 70px;
+  }
+
+  .mobile-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .mobile-text-lg { font-size: 1.125rem; }
+  .mobile-text-xl { font-size: 1.25rem; }
+  .mobile-text-2xl { font-size: 1.5rem; }
+  .mobile-text-3xl { font-size: 1.875rem; }
+  .mobile-text-4xl { font-size: 2.25rem; }
+  .mobile-text-5xl { font-size: 3rem; }
+}
+
+/* ========== CYBER DESIGN SYSTEM ========== */
+.cyber-text {
+  text-shadow:
+    0 0 10px #8b5cf6,
+    0 0 20px #ec4899,
+    0 0 30px #8b5cf6;
+}
+
+.cyber-border {
+  position: relative;
+  border: 1px solid transparent;
+  background: linear-gradient(45deg, #000, #1a1a1a) padding-box,
+              linear-gradient(45deg, #8b5cf6, #ec4899) border-box;
+}
+
+.cyber-button {
+  background: linear-gradient(45deg, #8b5cf6 0%, #ec4899 100%);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.cyber-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+}
+
+.cyber-button:active {
+  transform: translateY(0);
+}
+
+.cyber-card {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+}
+
+.cyber-card:hover {
+  border-color: rgba(139, 92, 246, 0.6);
+  transform: translateY(-5px);
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes hue-rotate {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-hue-rotate { animation: hue-rotate 8s linear infinite; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-neon-pulse { animation: neon-pulse 2s ease-in-out infinite; }
+
+/* ========== SCROLLBAR STYLING ========== */
+.scrollbar-cyber::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-cyber::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 3px;
+}
+
+.scrollbar-cyber::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #8b5cf6, #ec4899);
+  border-radius: 3px;
+}
+
+.scrollbar-cyber::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #7c3aed, #db2777);
+}
+
+/* ========== ACCESSIBILITY ========== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========== FOCUS STATES ========== */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* ========== LOADING STATES ========== */
+.loading-skeleton {
+  background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

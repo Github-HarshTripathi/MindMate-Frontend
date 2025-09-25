@@ -14,15 +14,8 @@ export default function ChatBot() {
 
   const negativeKeywords = ['sad', 'depressed', 'anxious', 'stress', 'lonely', 'hopeless'];
 
+  // Voice Recognition Setup
   useEffect(() => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1';
-
-    if (!isLocalhost && window.location.protocol !== 'https:') {
-      console.warn("Voice feature requires HTTPS in production!");
-      return;
-    }
-
     if ('webkitSpeechRecognition' in window) {
       recognition.current = new window.webkitSpeechRecognition();
       recognition.current.continuous = false;
@@ -35,35 +28,19 @@ export default function ChatBot() {
         setIsRecording(false);
       };
 
-      recognition.current.onerror = (error) => {
-        console.error('Voice Error:', error);
-        setIsRecording(false);
-      };
-
-      recognition.current.onend = () => {
-        setIsRecording(false);
-      };
-    } else {
-      console.warn("Browser doesn't support voice recognition!");
+      recognition.current.onerror = () => setIsRecording(false);
+      recognition.current.onend = () => setIsRecording(false);
     }
   }, []);
 
   const toggleRecording = () => {
     if (!recognition.current) return;
-
-    try {
-      if (isRecording) {
-        recognition.current.stop();
-      } else {
-        recognition.current.start();
-      }
-      setIsRecording(!isRecording);
-    } catch (error) {
-      console.error("Mic Error:", error);
-      setIsRecording(false);
-    }
+    if (isRecording) recognition.current.stop();
+    else recognition.current.start();
+    setIsRecording(!isRecording);
   };
 
+  // Auto scroll
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -71,32 +48,24 @@ export default function ChatBot() {
   }, [messages, isTyping]);
 
   const handleChat = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isTyping) return;
 
-    const userMessage = { 
-      text: input, 
-      sender: 'user',
-      key: Date.now()
-    };
+    const userMessage = { text: input, sender: 'user', key: Date.now() };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsTyping(true);
 
-    try {
-      const thinkingMessage = {
-        text: "Thinking...",
-        sender: 'bot',
-        key: 'thinking-message'
-      };
-      setMessages(prev => [...prev, thinkingMessage]);
+    // Show thinking indicator
+    const thinkingKey = 'thinking-message';
+    setMessages(prev => [...prev, { text: "Thinking...", sender: 'bot', key: thinkingKey }]);
 
+    try {
       const aiResponse = await sendToAI(input);
 
-      setMessages(prev => prev.filter(msg => msg.key !== 'thinking-message'));
+      // Remove thinking
+      setMessages(prev => prev.filter(msg => msg.key !== thinkingKey));
 
-      const isNegative = negativeKeywords.some(word => 
-        aiResponse.toLowerCase().includes(word)
-      );
+      const isNegative = negativeKeywords.some(word => aiResponse.toLowerCase().includes(word));
 
       setMessages(prev => [
         ...prev,
@@ -108,13 +77,12 @@ export default function ChatBot() {
         }
       ]);
     } catch (error) {
-      setMessages(prev => prev.filter(msg => msg.key !== 'thinking-message'));
+      setMessages(prev => prev.filter(msg => msg.key !== thinkingKey));
 
-      const errorMessage = error.message || 'Our AI assistant is currently unavailable. Please try again later.';
       setMessages(prev => [
         ...prev,
         {
-          text: errorMessage,
+          text: error.message || 'AI assistant is unavailable. Please try later.',
           sender: 'bot',
           key: Date.now() + 2,
           sentiment: 'neutral'
@@ -138,50 +106,25 @@ export default function ChatBot() {
                 <h3 className="text-xl font-bold text-neon-red">Support Suggestions</h3>
               </div>
               <div className="grid grid-cols-2 gap-4 text-purple-200">
-                <a href="/emergency" className="hover:text-neon-red transition-colors">
-                  🚨 Emergency Contacts
-                </a>
-                <a 
-                  href="https://youtube.com/playlist?list=PLw9WaGAqHydW5ZTwLG0gUzE3k9gQpW3jH" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-neon-red transition-colors"
-                >
-                  🎧 Calming Playlist
-                </a>
-                <a href="/meditation" className="hover:text-neon-red transition-colors">
-                  🧘 Breathing Exercise
-                </a>
-                <button 
-                  onClick={() => window.scrollTo(0, document.body.scrollHeight)}
-                  className="hover:text-neon-red transition-colors text-left"
-                >
-                  💬 Talk More
-                </button>
+                <a href="/emergency" className="hover:text-neon-red transition-colors">🚨 Emergency Contacts</a>
+                <a href="https://youtube.com/playlist?list=PLw9WaGAqHydW5ZTwLG0gUzE3k9gQpW3jH" target="_blank" rel="noopener noreferrer" className="hover:text-neon-red transition-colors">🎧 Calming Playlist</a>
+                <a href="/meditation" className="hover:text-neon-red transition-colors">🧘 Breathing Exercise</a>
+                <button onClick={() => window.scrollTo(0, document.body.scrollHeight)} className="hover:text-neon-red transition-colors text-left">💬 Talk More</button>
               </div>
             </div>
           )}
 
           <div className="rounded-xl border-2 border-neon-purple/30 bg-black/40 chat-container">
-            <div
-              ref={chatContainerRef}
-              className="chat-messages p-6 overflow-y-auto scrollbar-cyber"
-              style={{ minHeight: '400px', maxHeight: '60vh', overflowAnchor: 'none' }}
-            >
-              {messages.map((msg) => (
-                <div
-                  key={msg.key}
-                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
-                >
-                  <div
-                    className={`p-5 rounded-2xl max-w-[70%] border-2 ${
-                      msg.sender === 'user'
-                        ? 'border-neon-purple bg-neon-purple/10 text-purple-300'
-                        : msg.text === "Thinking..."
-                          ? 'border-cyan-500/30 bg-black/40'
-                          : 'border-neon-pink bg-black/40 text-pink-200'
-                    }`}
-                  >
+            <div ref={chatContainerRef} className="chat-messages p-6 overflow-y-auto scrollbar-cyber" style={{ minHeight: '400px', maxHeight: '60vh', overflowAnchor: 'none' }}>
+              {messages.map(msg => (
+                <div key={msg.key} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}>
+                  <div className={`p-5 rounded-2xl max-w-[70%] border-2 ${
+                    msg.sender === 'user'
+                      ? 'border-neon-purple bg-neon-purple/10 text-purple-300'
+                      : msg.text === "Thinking..."
+                        ? 'border-cyan-500/30 bg-black/40'
+                        : 'border-neon-pink bg-black/40 text-pink-200'
+                  }`}>
                     <div className="prose prose-invert">
                       {msg.text === "Thinking..." ? (
                         <div className="flex items-center space-x-2">
@@ -204,16 +147,10 @@ export default function ChatBot() {
             <div className="flex gap-4 items-center">
               <button
                 onClick={toggleRecording}
-                className={`cyber-button px-4 py-4 rounded-xl ${
-                  isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-purple-600 hover:bg-purple-700'
-                } transition-colors`}
+                className={`cyber-button px-4 py-4 rounded-xl ${isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-purple-600 hover:bg-purple-700'} transition-colors`}
                 disabled={!recognition.current}
               >
-                {isRecording ? (
-                  <FiStopCircle size={24} className="text-white" />
-                ) : (
-                  <FiMic size={24} className="text-white" />
-                )}
+                {isRecording ? <FiStopCircle size={24} /> : <FiMic size={24} />}
               </button>
               <input
                 type="text"

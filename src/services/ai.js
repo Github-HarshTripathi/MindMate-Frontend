@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL =
-  import.meta.env.VITE_API_URL ||
+const BASE_URL = import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === 'production'
     ? 'https://mind-mate-backend.vercel.app/api'
     : 'http://localhost:5000/api');
@@ -14,23 +13,31 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    console.log(`🚀 API request: ${config.url}`);
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
   (error) => {
-    if (!error.response) throw new Error('Network error - Cannot reach server');
+    if (error.code === 'ECONNABORTED') {
+      throw new Error('Request timeout - Please check your connection');
+    }
+    if (!error.response) {
+      throw new Error('Network error - Unable to reach server');
+    }
     const status = error.response.status;
     const message = error.response.data?.error || 'An error occurred';
     switch (status) {
       case 500:
-        throw new Error('Server error - Try later');
+        throw new Error('Server error - Please try again later');
       case 503:
-        throw new Error('Service unavailable - DB issue');
+        throw new Error('Service unavailable - Database connection failed');
       default:
         throw new Error(message);
     }
@@ -38,8 +45,15 @@ api.interceptors.response.use(
 );
 
 export const sendToAI = async (message) => {
-  const response = await api.post('/ai/chat', { message });
-  return response.data.response;
+  try {
+    const response = await api.post('/ai/chat', {
+      message,
+      timestamp: new Date().toISOString()
+    });
+    return response.data.response;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export default api;
